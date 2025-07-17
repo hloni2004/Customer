@@ -37,7 +37,7 @@ public class EmployeeController {
 
         return service.update(employee);
     }
-    @RequestMapping("/delete/{employeeNumber}")
+    @DeleteMapping ("/delete/{employeeNumber}")
     public boolean delete(@PathVariable String employeeNumber){
 
         return service.delete(employeeNumber);

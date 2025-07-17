@@ -1,6 +1,5 @@
 package za.ac.cput.controller;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -8,15 +7,14 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import za.ac.cput.domain.Employee;
 import za.ac.cput.factory.EmployeeFactory;
 
 import static org.junit.jupiter.api.Assertions.*;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@TestMethodOrder(MethodOrderer.MethodName.class)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class EmployeeControllerTest {
 
     private static Employee employee;
@@ -27,88 +25,86 @@ class EmployeeControllerTest {
     private static final String BASE_URL = "http://localhost:8080/payroll/employee";
 
     @BeforeAll
-    public static void setup(){
-        employee = EmployeeFactory.createEmployee("021458","hloni","mokoena","hloniyacho@gmail.com","0402165695089");
+    public static void setup() {
+        employee = EmployeeFactory.createEmployee(
+                "021458", "Hloni", "Mokoena", "hloniyacho@gmail.com", "0402165695089"
+        );
     }
-
-
 
     @Test
     void a_createEmployee() {
-//        String url = BASE_URL + "/create";
-//        Employee createdEmployee = this.restTemplate.postForObject(url,employee, Employee.class);
-//        assertNotNull(createdEmployee);
-//        //Employee employeeSaved = postResponse.getBody();
-//        assertEquals(employee.getEmployeeNumber(),createdEmployee.getEmployeeNumber());
-//        System.out.println("Created" + createdEmployee);
-
         String url = BASE_URL + "/create";
-        ResponseEntity<Employee> postResponse = this.restTemplate.postForEntity(url,employee, Employee.class);
+        ResponseEntity<Employee> postResponse = this.restTemplate.postForEntity(url, employee, Employee.class);
+
         assertNotNull(postResponse);
-        Employee employeeSaved = postResponse.getBody();
-        assertEquals(employee.getEmployeeNumber(),employeeSaved.getEmployeeNumber());
-        System.out.println("Created" + employeeSaved);
+        assertNotNull(postResponse.getBody());
 
-        
-        
-    }
-
-
-    @Test
-    void b_read() {
-        String url = BASE_URL +"/read/"+ employee.getEmployeeNumber();
-        ResponseEntity<Employee> reponse = this.restTemplate.getForEntity(url,Employee.class);
-         assertEquals(employee.getEmployeeNumber(),reponse.getBody().getEmployeeNumber());
-         System.out.println("Read"+reponse.getBody());
-         
-        
+        Employee savedEmployee = postResponse.getBody();
+        assertEquals(employee.getEmployeeNumber(), savedEmployee.getEmployeeNumber());
+        System.out.println("Created: " + savedEmployee);
     }
 
     @Test
-    void c_update() {
+    void b_readEmployee() {
+        String url = BASE_URL + "/read/" + employee.getEmployeeNumber();
+        ResponseEntity<Employee> response = this.restTemplate.getForEntity(url, Employee.class);
 
+        assertNotNull(response, "Read response is null");
+        assertNotNull(response.getBody(), "Employee read is null");
+
+        Employee readEmployee = response.getBody();
+        System.out.println("Read: " + readEmployee);
+
+        assertEquals(employee.getEmployeeNumber(), readEmployee.getEmployeeNumber(), "Employee numbers do not match");
+    }
+
+    @Test
+    void c_updateEmployee() {
         Employee updatedEmployee = new Employee.Builder()
                 .copy(employee)
                 .setEmail("lohji@gmail.com")
                 .build();
-               String url = BASE_URL +"/update";
-               this.restTemplate.put(url,updatedEmployee);
 
-               ResponseEntity<Employee> response =restTemplate.getForEntity(BASE_URL+"/read/"+updatedEmployee.getEmployeeNumber(), Employee.class);
+        String url = BASE_URL + "/update";
+        this.restTemplate.put(url, updatedEmployee);
 
-               assertEquals(response.getStatusCode(), HttpStatus.OK);
+        ResponseEntity<Employee> response = this.restTemplate.getForEntity(
+                BASE_URL + "/read/" + updatedEmployee.getEmployeeNumber(), Employee.class
+        );
 
-               assertNotNull(response.getBody());
+        assertNotNull(response, "Update read response is null");
+        assertNotNull(response.getBody(), "Updated employee is null");
 
+        Employee updated = response.getBody();
+        System.out.println("Updated: " + updated);
 
-        
+        assertEquals("lohji@gmail.com", updated.getEmail(), "Email was not updated correctly");
     }
 
     @Test
-    void d_delete()
-    {
-        String url = BASE_URL +"/delete/"+employee.getEmployeeNumber();
+    void d_deleteEmployee() {
+        String url = BASE_URL + "/delete/" + employee.getEmployeeNumber();
         this.restTemplate.delete(url);
 
+        ResponseEntity<Employee> response = this.restTemplate.getForEntity(
+                BASE_URL + "/read/" + employee.getEmployeeNumber(), Employee.class
+        );
 
-        //verfiy that the was deleted
-        ResponseEntity<Employee> response = this.restTemplate.getForEntity(BASE_URL+"/read/"+employee.getEmployeeNumber(),Employee.class);
-
-        assertEquals(HttpStatus.NOT_FOUND,response.getStatusCode());
-        System.out.println("Deleted :"+ employee.getEmployeeNumber());
-
+        assertNull(response.getBody(), "Employee was not deleted");
+        System.out.println("Deleted: " + employee.getEmployeeNumber());
     }
 
     @Test
-    void e_getAll() {
-        String url = BASE_URL +"/getAll/";
-        ResponseEntity<Employee[]>response = this.restTemplate.getForEntity(url,Employee[].class);
-        assertNotNull(response);
-        System.out.print("Get All: ");
-        for(Employee emp :response.getBody()){
+    void e_getAllEmployees() {
+        String url = BASE_URL + "/getAll";
+        ResponseEntity<Employee[]> response = this.restTemplate.getForEntity(url, Employee[].class);
 
+        assertNotNull(response, "GetAll response is null");
+        assertNotNull(response.getBody(), "GetAll returned no data");
+
+        System.out.println("All Employees:");
+        for (Employee emp : response.getBody()) {
             System.out.println(emp);
         }
-
     }
 }

@@ -6,10 +6,7 @@ public class Helper {
 
     public static boolean NotValidString(String str){
 
-        if(str.isEmpty() && str == null){
-            return true;
-        }
-        return false;
+        return str == null || str.trim().isEmpty();
     }
 
     public static  boolean ValidEmail(String email){

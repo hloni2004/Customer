@@ -11,5 +11,6 @@ public class EmployeeFactoryTest {
     @Test
     void createEmployee() {
         assertNotNull(employee);
+        System.out.println(employee);
     }
 }
